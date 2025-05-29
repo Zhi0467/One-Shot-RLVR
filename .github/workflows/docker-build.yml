@@ -15,6 +15,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Free up disk space on runner
+        run: |
+          echo "Initial disk space:"
+          df -h
+          # Remove large pre-installed tools not needed by your build
+          sudo rm -rf /usr/share/dotnet # .NET SDKs
+          sudo rm -rf /opt/ghc # Haskell
+          sudo rm -rf "/usr/local/share/boost" # Boost libraries
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY" # Cached versions of tools like Python, Go, etc.
+          # Clean apt cache (though your Dockerfile does this internally for its layers)
+          sudo apt-get clean
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Set up QEMU (for multi-platform builds, good practice even if only building one platform now)
         uses: docker/setup-qemu-action@v3
 
