@@ -1,0 +1,67 @@
+# Git specific
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+*.egg
+*.whl
+
+# Virtual environments (if you ever create one locally outside Docker)
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Conda environments (if a local one is created in the repo and not meant for the image)
+# e.g., if you created 'rlvr_train' locally in the repo root
+# rlvr_train/ 
+
+# Local data, results, logs, checkpoints - These should generally be mounted as volumes in K8s
+# or handled externally, not built into the image unless they are small, essential seed data.
+# Adapt these based on your actual local directory structure and what's truly needed in the image.
+# data/ 
+
+checkpoints/ # If you store training checkpoints locally in the repo
+*.log
+verl_demo.log # Specific log file from your script
+wandb/ # Local wandb artifacts if not synced or if you want to exclude local runs
+
+# Notebook specific
+.ipynb_checkpoints/
+
+# macOS specific
+.DS_Store
+.AppleDouble
+
+# Test specific (if reports/coverage aren't needed in the final image)
+.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# Docker specific (in case you have other Dockerfiles or docker-compose.yml for local dev)
+Dockerfile.dev
+docker-compose.local.yml
+
+# Any local configuration files not meant for the image
+config.local.yaml
+secrets.env
+
+# If Qwen2.5-Eval is a submodule you manage separately or is very large and not always needed in this specific image
+# Qwen2.5-Eval/

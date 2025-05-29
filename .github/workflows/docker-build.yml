@@ -1,0 +1,53 @@
+# .github/workflows/docker-build.yml
+name: Docker Build and Push (AMD64)
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  # You can also add other triggers, like pull_request, workflow_dispatch, etc.
+
+jobs:
+  build-and-push-amd64:
+    runs-on: ubuntu-latest # This runner is linux/amd64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (for multi-platform builds, good practice even if only building one platform now)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # This action sets up a buildx builder instance that can leverage build cache from GitHub Actions
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # Use a Personal Access Token (PAT)
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/reproduce-one-shot-rlvr # Replace with your image name
+          tags: |
+            type=sha,prefix= # Git commit SHA (short) e.g., sha-a1b2c3d
+            type=raw,value=latest,enable={{is_default_branch}} # Tag 'latest' only for default branch (main)
+            # type=ref,event=branch
+            # type=ref,event=pr
+            # type=semver,pattern={{version}} # If you use git tags for versions
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: . # Build context is the root of your repository
+          file: ./Dockerfile # Path to your Dockerfile
+          platforms: linux/amd64 # Explicitly build for linux/amd64
+          push: ${{ github.event_name == 'push' }} # Push only on 'push' events (e.g., to main branch)
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha # Enable caching from GitHub Actions cache
+          cache-to: type=gha,mode=max # Enable writing to GitHub Actions cache
